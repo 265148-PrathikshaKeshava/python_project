@@ -1,0 +1,25 @@
+{% extends 'finance/base.html' %}
+{% block content %}
+<h2>Taxable Income Calculator</h2>
+
+<form method="post" class="row g-3">
+    {% csrf_token %}
+    <div class="col-md-6">
+        <label class="form-label">Gross Income (₹)</label>
+        <input type="number" name="gross_income" class="form-control" required>
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label">Deductions (₹)</label>
+        <input type="number" name="deductions" class="form-control" required>
+    </div>
+
+    <div class="col-12 mt-3">
+        <button type="submit" class="btn btn-primary">Calculate</button>
+    </div>
+</form>
+
+{% if result %}
+<div class="alert alert-info mt-4">Taxable Income: ₹{{ result }}</div>
+{% endif %}
+{% endblock %}

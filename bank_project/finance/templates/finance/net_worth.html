@@ -1,0 +1,21 @@
+{% extends 'finance/base.html' %}
+{% block content %}
+<h2>Net Worth Calculator</h2>
+<form method="post" class="row g-3">
+    {% csrf_token %}
+    <div class="col-md-6">
+        <label class="form-label">Total Assets (₹)</label>
+        <input type="number" name="assets" class="form-control" required>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Total Liabilities (₹)</label>
+        <input type="number" name="liabilities" class="form-control" required>
+    </div>
+    <div class="col-12 mt-3">
+        <button type="submit" class="btn btn-dark">Calculate Net Worth</button>
+    </div>
+</form>
+{% if result %}
+<div class="alert alert-success mt-4">Net Worth: ₹{{ result }}</div>
+{% endif %}
+{% endblock %}

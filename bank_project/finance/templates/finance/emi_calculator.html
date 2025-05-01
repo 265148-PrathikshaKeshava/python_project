@@ -1,0 +1,28 @@
+{% extends 'finance/base.html' %}
+{% block content %}
+<h2>EMI Calculator</h2>
+<form method="post" class="row g-3">
+    {% csrf_token %}
+    <div class="col-md-4">
+        <label class="form-label">Principal Amount (₹)</label>
+        <input type="number" name="principal" step="0.01" class="form-control" required>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Annual Interest Rate (%)</label>
+        <input type="number" name="rate" step="0.01" class="form-control" required>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Tenure (Years)</label>
+        <input type="number" name="tenure" class="form-control" required>
+    </div>
+    <div class="col-12 mt-3">
+        <button type="submit" class="btn btn-primary">Calculate EMI</button>
+    </div>
+</form>
+
+{% if result %}
+<div class="alert alert-success mt-4">
+    <strong>Monthly EMI:</strong> ₹{{ result }}
+</div>
+{% endif %}
+{% endblock %}

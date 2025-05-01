@@ -1,0 +1,29 @@
+{% extends 'finance/base.html' %}
+{% block content %}
+<h2>Simple Budget Planner</h2>
+<form method="post" class="row g-3">
+    {% csrf_token %}
+    <div class="col-md-4">
+        <label class="form-label">Monthly Income (₹)</label>
+        <input type="number" name="income" class="form-control" required>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Fixed Expenses (₹)</label>
+        <input type="number" name="fixed_expenses" class="form-control" required>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Variable Expenses (₹)</label>
+        <input type="number" name="variable_expenses" class="form-control" required>
+    </div>
+    <div class="col-12 mt-3">
+        <button type="submit" class="btn btn-success">Analyze Budget</button>
+    </div>
+</form>
+{% if result %}
+<div class="alert alert-info mt-4">
+    <p><strong>Total Expenses:</strong> ₹{{ result.Total_Expenses }}</p>
+    <p><strong>Savings:</strong> ₹{{ result.Savings }}</p>
+    <p><strong>Suggestion:</strong> {{ result.Suggestion }}</p>
+</div>
+{% endif %}
+{% endblock %}

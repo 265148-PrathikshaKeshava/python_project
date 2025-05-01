@@ -1,0 +1,21 @@
+
+{% extends 'finance/base.html' %}
+
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">📊 Loan Dataset - EDA</h2>
+
+    <nav class="mb-4">
+        <a href="/loan_prediction" class="btn btn-outline-primary btn-sm">🏠 Predictor</a>
+        <a href="{% url 'loan_eda' %}" class="btn btn-outline-secondary btn-sm">📊 EDA</a>
+    </nav>
+
+    {% for plot in plots %}
+        <div class="mb-5">
+            <img src="data:image/png;base64,{{ plot }}" class="img-fluid border shadow-sm">
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
