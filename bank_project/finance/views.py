@@ -1,24 +1,73 @@
-from django.shortcuts import render
 
-#ML
-import os
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import BankAccount, Transaction
+from .forms import TransactionForm
+from .forms import LoanPredictionForm
+
 import joblib
-from django.shortcuts import render
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-from io import BytesIO
-import base64
-from django.conf import settings
-
-# Create your views here.
-from django.shortcuts import render
-
-
+import numpy as np
+import os
 #Login
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+
+@login_required
+def view_balance(request):
+    """View the balance of the user's bank account."""
+    try:
+        bank_account = BankAccount.objects.get(user=request.user)
+        balance = bank_account.balance
+    except BankAccount.DoesNotExist:
+        balance = 0
+    return render(request, 'finance/view_balance.html', {'balance': balance})
+
+
+@login_required
+def deposit(request):
+    """Handle deposits into the user's bank account."""
+    if request.method == 'POST':
+        form = TransactionForm(request.POST)
+        if form.is_valid():
+            amount = form.cleaned_data['amount']
+            bank_account, created = BankAccount.objects.get_or_create(user=request.user)
+            if amount > 0:
+                transaction = Transaction.objects.create(
+                    account=bank_account,
+                    amount=amount,
+                    transaction_type=Transaction.DEPOSIT
+                )
+                messages.success(request, f'Deposited {amount} successfully!')
+                return redirect('view_balance')
+            else:
+                messages.error(request, 'Amount must be positive.')
+    else:
+        form = TransactionForm()
+    return render(request, 'finance/transaction_form.html', {'form': form, 'transaction_type': 'Deposit'})
+
+@login_required
+def withdraw(request):
+    """Handle withdrawals from the user's bank account."""
+    if request.method == 'POST':
+        form = TransactionForm(request.POST)
+        if form.is_valid():
+            amount = form.cleaned_data['amount']
+            bank_account = BankAccount.objects.get(user=request.user)
+            if amount > 0 and bank_account.balance >= amount:
+                transaction = Transaction.objects.create(
+                    account=bank_account,
+                    amount=amount,
+                    transaction_type=Transaction.WITHDRAWAL
+                )
+                messages.success(request, f'Withdrew {amount} successfully!')
+                return redirect('view_balance')
+            else:
+                messages.error(request, 'Insufficient balance or invalid amount.')
+    else:
+        form = TransactionForm()
+    return render(request, 'finance/transaction_form.html', {'form': form, 'transaction_type': 'Withdraw'})
 
 def login_view(request):
     error = None
@@ -64,6 +113,10 @@ def signup_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+
+def home(request):
+    return render(request, 'finance/home.html', {'hide_sidebar': True})
 
 
 @login_required
@@ -287,8 +340,14 @@ def net_worth_view(request):
     return render(request, 'finance/net_worth.html', {'result': result})
 
 
-model = joblib.load(os.path.join(settings.BASE_DIR, r'C:\Users\Administrator\Desktop\Final Project\Python-FinalProject-\bank_project\loan_model.pkl'))
-features = joblib.load(os.path.join(settings.BASE_DIR, r'C:\Users\Administrator\Desktop\Final Project\Python-FinalProject-\bank_project\model_features.pkl'))
+
+import os
+from django.conf import settings
+
+model_path = os.path.join(settings.BASE_DIR, r'C:\Users\Administrator\Desktop\Python final project\python_project\bank_project\loan_model.pkl')
+model = joblib.load(model_path)
+features = joblib.load(os.path.join(settings.BASE_DIR, r'C:\Users\Administrator\Desktop\Python final project\python_project\bank_project\model_features.pkl'))
+
 labels = {
     'Age': 'Age (years)',
     'Monthly_Income': 'Monthly Income (₹)',
@@ -298,6 +357,37 @@ labels = {
     'Num_of_Dependents': 'Number of Dependents'
 }
 
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from io import BytesIO
+import base64
+
+
+
+import os
+import joblib
+from django.shortcuts import render
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from io import BytesIO
+import base64
+from django.conf import settings
+
+# Load model and feature data
+model = joblib.load(os.path.join(settings.BASE_DIR, r'C:\Users\Administrator\Desktop\Python final project\python_project\bank_project\loan_model.pkl'))
+features = joblib.load(os.path.join(settings.BASE_DIR, r'C:\Users\Administrator\Desktop\Python final project\python_project\bank_project\model_features.pkl'))
+labels = {
+    'Age': 'Age (years)',
+    'Monthly_Income': 'Monthly Income (₹)',
+    'Credit_Score': 'Credit Score (300–850)',
+    'Loan_Tenure_Years': 'Loan Tenure (years)',
+    'Existing_Loan_Amount': 'Existing Loan Amount (₹)',
+    'Num_of_Dependents': 'Number of Dependents'
+}
+
+# Prediction view
 def loan_predictor(request):
     prediction = None
     if request.method == 'POST':
@@ -307,10 +397,36 @@ def loan_predictor(request):
         except Exception as e:
             prediction = f"Error: {e}"
     
-    return render(request, 'finance/loan_prediction.html', {'features': features, 'prediction': prediction,'labels': labels})
-    
+    return render(request, 'finance/loan_prediction.html', {
+        'features': features,
+        'prediction': prediction,
+        'labels': labels
+    })
+
+# EDA view
 def eda_view(request):
-    df = pd.read_csv(r'C:\Users\Administrator\Desktop\Final Project\Python-FinalProject-\bank_project\loan_amount_prediction_dataset_v2.csv').dropna()
+    df = pd.read_csv(r'C:\Users\Administrator\Desktop\Python final project\python_project\bank_project\loan_amount_prediction_dataset_v2.csv').dropna()
+
+    # Clean column names
+    df.columns = df.columns.str.strip()
+
+    # Optional: print columns to debug
+    print("CSV Columns:", df.columns.tolist())
+
+    # Check column names and rename if needed
+    column_map = {
+        'LoanAmount': 'Loan_Amount',
+        'MonthlyIncome': 'Monthly_Income',
+        'CreditScore': 'Credit_Score'
+    }
+    df = df.rename(columns=column_map)
+
+    # Make sure columns exist
+    required_columns = ['Loan_Amount', 'Monthly_Income', 'Credit_Score']
+    for col in required_columns:
+        if col not in df.columns:
+            raise ValueError(f"Missing expected column: {col}")
+
     plots = []
 
     # Plot 1: Loan Amount Distribution
@@ -330,10 +446,10 @@ def eda_view(request):
     sns.boxplot(x='Credit_Score', y='Loan_Amount', data=df, ax=ax)
     ax.set_title('Credit Score vs Loan Amount')
     plots.append(get_base64_plot(fig))
-    
 
     return render(request, 'finance/eda.html', {'plots': plots})
 
+# Base64 conversion
 def get_base64_plot(fig):
     buffer = BytesIO()
     fig.savefig(buffer, format='png')
@@ -341,3 +457,16 @@ def get_base64_plot(fig):
     image_png = buffer.getvalue()
     buffer.close()
     return base64.b64encode(image_png).decode('utf-8')
+
+
+import base64
+import matplotlib.pyplot as plt
+from io import BytesIO
+
+from django.shortcuts import render
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from io import BytesIO
+import base64
+

@@ -1,0 +1,16 @@
+{% extends 'finance/base.html' %}
+{% block content %}
+<main class="d-flex justify-content-center align-items-center mt-5">
+    <div class="card shadow-lg p-4" style="width: 100%; max-width: 600px; border-radius: 1rem;">
+        <h3 class="card-title text-center mb-4 text-primary">💳 Your Balance</h3>
+        <p class="text-center fs-4">Your current balance is: 
+            <span class="text-success">₹{{ balance|default:"0.00" }}</span>
+        </p>
+        
+        <div class="text-center mt-4">
+            <a href="{% url 'deposit' %}" class="btn btn-success btn-lg mx-2">Deposit</a>
+            <a href="{% url 'withdraw' %}" class="btn btn-danger btn-lg mx-2">Withdraw</a>
+        </div>
+    </div>
+</main>
+{% endblock %}

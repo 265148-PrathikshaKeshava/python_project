@@ -1,19 +1,17 @@
-
 {% extends 'finance/base.html' %}
 {% load custom_filters %}
 
 {% block content %}
-
-
 <div class="container mt-5">
     <h2 class="mb-4">🔢 Loan Amount Predictor</h2>
 
+    <!-- Navigation Links -->
     <nav class="mb-4">
-        <a href="/loan_prediction" class="btn btn-outline-primary btn-sm">🏠 Predictor</a>
+        <a href="{% url 'predict_loan' %}" class="btn btn-outline-primary btn-sm">🏠 Predictor</a>
         <a href="{% url 'loan_eda' %}" class="btn btn-outline-secondary btn-sm">📊 EDA</a>
-
     </nav>
 
+    <!-- Form for Input -->
     <form method="post" class="p-4 border rounded bg-white shadow-sm">
         {% csrf_token %}
         {% for f in features %}
@@ -25,6 +23,7 @@
         <button class="btn btn-primary">Predict</button>
     </form>
 
+    <!-- Display Prediction Result -->
     {% if prediction %}
         <div class="alert alert-success mt-4">
             💰 Predicted Loan Amount: <strong>₹{{ prediction }}</strong>

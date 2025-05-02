@@ -1,0 +1,22 @@
+{% extends 'finance/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-start align-items-start mt-3 ml-3">
+    <div class="card shadow-sm p-4" style="max-width: 400px; width: 100%; height: 400px; border-radius: 1rem; background-color: #fff;">
+        <h3 class="text-center mb-4 text-primary font-weight-bold">{{ transaction_type }} Form</h3>
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                {{ form.as_p }}
+            </div>
+            
+            <div class="d-flex justify-content-center">
+                <button type="submit" class="btn btn-primary btn-sm" style="width: 50%; border-radius: 2rem; padding: 8px 0;">
+                    {{ transaction_type }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
